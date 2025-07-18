@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+
+[project]
+name = "minecraft-panel-agent"
+version = "0.1.0"
+description = "Simple Pelican panel agent constrained to a single Minecraft server"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "python-dotenv>=1.0",
+    "requests>=2.32",
+    "openai>=1.30",
+    "tqdm>=4.66",
+    "streamlit>=1.35",
+]
+
+[project.scripts]
+minecraft-panel-agent = "minecraft_agent.main:cli"
