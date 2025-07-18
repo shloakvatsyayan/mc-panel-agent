@@ -1,2 +1,6 @@
 .env
 downloads/
+.idea
+minecraft_agent/__pycache__
+minecraft_agent/tools/__pycache__
+minecraft_agent/utils/__pycache__
