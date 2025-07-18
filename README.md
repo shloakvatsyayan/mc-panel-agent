@@ -26,5 +26,9 @@ pip install -r requirements.txt        # or 'poetry install'
 cp .env.example .env
 #   – fill in PELICAN_BASE_URL, PELICAN_API_KEY, OPENAI_API_KEY
 
+# 3. Edit config.py for your server(s)
+nano minecraft_agent/config.py
+# Change "6dcdb020-5ac5-4867-9bc3-98092e4f71fb" on line 23 to your server's ID.
+
 # 3. Run
 python -m minecraft_agent.main "Start the server if it is offline."
