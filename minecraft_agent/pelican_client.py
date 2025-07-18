@@ -55,40 +55,7 @@ class PelicanClient:
         if resp.headers.get("Content-Type", "").startswith("application/json"):
             return resp.json()
         return resp.text
-
-    # ---------- high‑level API methods ------------------------------------ #
-    def get_resources(self, server_id: str) -> Dict[str, Any]:
-        """Return RAM, CPU, online status, etc."""
-        self._assert_allowed(server_id)
-        resp = self._request("GET", f"/api/client/servers/{server_id}/resources")
-        if isinstance(resp, dict):
-            return resp
-        raise PelicanError("Expected JSON response for resources")
-
-    def power(self, server_id: str, signal: str) -> None:
-        """Send start / restart / stop / kill / hibernate."""
-        self._assert_allowed(server_id)
-        if signal not in {"start", "restart", "stop", "kill", "hibernate"}:
-            raise ValueError("Invalid power signal")
-        self._request("POST", f"/api/client/servers/{server_id}/power", json={"signal": signal})
-
-    def send_command(self, server_id: str, command: str) -> None:
-        """Run a console command."""
-        self._assert_allowed(server_id)
-        self._request("POST", f"/api/client/servers/{server_id}/command", json={"command": command})
-
-    def list_dir(self, server_id: str, directory: str = "/") -> List[Dict[str, Any]]:
-        """Return directory listing (files + folders)."""
-        self._assert_allowed(server_id)
-        resp = self._request(
-            "GET",
-            f"/api/client/servers/{server_id}/files/list",
-            params={"directory": directory},
-        )
-        if isinstance(resp, list) and all(isinstance(x, dict) for x in resp):
-            return resp
-        raise PelicanError("Expected JSON list for directory listing")
-
+    
     def upload_file(self, server_id: str, local_path: Path, remote_path: str) -> None:
         """
         Upload *local_path* to *remote_path* using the `/files/write` endpoint.
@@ -102,6 +69,7 @@ class PelicanClient:
         payload = {
             "file": remote_path,          # e.g. "/plugins/EssentialsX.jar"
             "content": file_b64,
+            "path": remote_path,
             "encoding": "base64",
         }
         self._request(

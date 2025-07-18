@@ -28,6 +28,8 @@ from .tools import all_tools
 from .utils.logging import get_logger
 
 log = get_logger("AgentRunner")
+with open(Path(__file__).parent.parent / "pelicanapidocs" / "pelican_api.md", "r") as file:
+    apidocs = file.read()
 
 # --------------------------------------------------------------------------- #
 # Tool registry helpers                                                       #
@@ -81,6 +83,8 @@ _SYSTEM_PROMPT = (
     "Minecraft server(s). Always use the **restart** power signal (not stop→start). "
     "When adding a plugin you MUST: (1) call list_downloads; "
     "(2) upload if present; (3) otherwise download from an approved site."
+    "When running a command, remove the / from the command."
+    "If you need to run another command, use the custom api docs tool. These are the api docs: " + apidocs
 )
 
 
