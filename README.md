@@ -2,7 +2,7 @@
 
 A minimal OpenAI‑function‑calling agent that **only** manages the Minecraft
 server whose UUID is `6dcdb020-5ac5-4867-9bc3-98092e4f71fb` through the Pelican
-(= Pterodactyl v1) *client* API.
+(= Pterodactyl v1) *client* API. This will be a .env configuration later.
 
 Key points
 * **Hard server whitelist** – any request touching a different server raises.
