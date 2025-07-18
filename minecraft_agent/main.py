@@ -9,7 +9,6 @@ Exposes:
 from __future__ import annotations
 
 import argparse
-import base64
 import inspect
 import json
 from pathlib import Path
@@ -91,31 +90,6 @@ _SYSTEM_PROMPT = (
 def _user_prompt(txt: str) -> str:
     return f"{txt} Servers available: {', '.join(ALLOWED_SERVER_IDS)}"
 
-
-# --------------------------------------------------------------------------- #
-# Plugin upload override: write endpoint                                      #
-# --------------------------------------------------------------------------- #
-from .pelican_client import PelicanClient  # keep import local
-PelicanClient  # silence flake8
-
-
-def _patched_upload_file(self: "PelicanClient", server_id: str, local: Path, remote: str):
-    """Use /files/write (binary) instead of the unsupported /files/upload."""
-    self._assert_allowed(server_id)
-    data = local.read_bytes()
-    encoded = base64.b64encode(data).decode()
-    payload = {"file": remote, "content": encoded, "encoding": "base64"}
-    self._request(
-        "POST",
-        f"/api/client/servers/{server_id}/files/write",
-        json=payload,
-    )
-
-
-# monkey‑patch once
-from types import MethodType
-
-PelicanClient.upload_file = MethodType(_patched_upload_file, PelicanClient)
 
 
 # --------------------------------------------------------------------------- #
