@@ -38,12 +38,10 @@ load_dotenv()
 
 log = get_logger("CustomAPITool")
 
-# ───────────────────────── auth configuration ────────────────────────────────
 PELICAN_BASE_URL: str = os.getenv("PELICAN_BASE_URL", "https://panel.example.com")
-PELICAN_API_KEY: Optional[str] = os.getenv("PELICAN_API_KEY")       # ptlc_…
-PELICAN_ADMIN_TOKEN: Optional[str]  = os.getenv("PELICAN_ADMIN_TOKEN")    # ptla_…
+PELICAN_API_KEY: Optional[str] = os.getenv("PELICAN_API_KEY")
+PELICAN_ADMIN_TOKEN: Optional[str]  = os.getenv("PELICAN_ADMIN_TOKEN")
 
-# ────────────────────────── pydantic schema ──────────────────────────────────
 class APICallArgs(py.BaseModel):
     method: Literal["GET", "POST", "PATCH", "DELETE"]
     path: str
@@ -60,7 +58,6 @@ class APICallArgs(py.BaseModel):
             raise ValueError("path must start with /api/client or /api/application")
         return v
 
-# ────────────────────────── tool implementation ─────────────────────────────
 class CustomAPITool:
     NAME = "custom_api_call"
     DESC = (
@@ -68,21 +65,18 @@ class CustomAPITool:
         "If PELICAN_ADMIN_TOKEN is missing only /api/client endpoints are allowed."
     )
 
-    # spec for the LLM
     def function_spec(self) -> Dict[str, Any]:
         schema = APICallArgs.model_json_schema()
         schema["additionalProperties"] = False
         return {"name": self.NAME, "description": self.DESC, "parameters": schema}
 
-    # executor
     def __call__(self, *args):
-        arguments = args[-1]  # last positional arg carries the dict
+        arguments = args[-1]
         try:
             payload = APICallArgs(**arguments)
         except Exception as e:
             return f"Validation error: {e}"
 
-        # choose token & headers
         if payload.token_type == "client":
             if not PELICAN_API_KEY:
                 return "Client API token not configured (PELICAN_ADMIN_TOKEN env var).",
@@ -90,7 +84,7 @@ class CustomAPITool:
                 "Authorization": f"Bearer {PELICAN_API_KEY}",
                 "Accept": "application/vnd.pterodactyl.v1+json",
             }
-        else:  # application / admin call
+        else: 
             if not PELICAN_ADMIN_TOKEN:
                 return (
                     "Admin-API token not configured (PELICAN_ADMIN_TOKEN env var) – "
