@@ -7,6 +7,7 @@ from .list_downloads_tool import ListDownloadsTool
 from .web_tool import SafeWebDownloadTool
 from .wait_tool import WaitTool
 from .custom_api_tool import CustomAPITool
+from .upload_file_tool import UploadFileTool
 
 
 def all_tools() -> List:
@@ -15,4 +16,5 @@ def all_tools() -> List:
         SafeWebDownloadTool(),
         WaitTool(),
         CustomAPITool(),
+        UploadFileTool(),
         ]

@@ -1,0 +1,12 @@
+[theme]
+base="dark"
+primaryColor = "#bb5a38"               # your accent color
+backgroundColor = "#1F1F23"            # app background
+secondaryBackgroundColor = "#2A2A2E"   # sidebar & cards
+textColor = "#E6E6E6"                  # light text
+borderColor = "#333338"
+font = "SpaceGrotesk"
+headingFont = "SpaceGroteskHeader"
+codeFont = "SpaceMono"
+showWidgetBorder = false
+showSidebarBorder = false

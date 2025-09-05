@@ -19,9 +19,8 @@ class WaitTool:
         schema["additionalProperties"] = False
         return {"name": self.NAME, "description": self.DESC, "parameters": schema}
 
-    # Works with either call style: (arguments) or (name, arguments)
     def __call__(self, *args):
-        arguments = args[-1]  # last positional arg is the dict
+        arguments = args[-1]
         parsed = WaitArgs(**arguments)
         sleep(parsed.seconds)
         return f"Slept {parsed.seconds} s."

@@ -20,9 +20,6 @@ from .config import ALLOWED_SERVER_IDS, OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEM
 from .tools import all_tools
 from .utils.logging import get_logger
 
-# --------------------------------------------------------------------------- #
-# Constants & static data                                                     #
-# --------------------------------------------------------------------------- #
 log = get_logger("AgentRunner")
 apidocs = (Path(__file__).parent.parent / "pelicanapidocs" / "pelican_api.md").read_text()
 
@@ -31,21 +28,25 @@ _SYSTEM_PROMPT = (
     "server(s). Instead of stopping and starting the server, you can use the restart power signal. "
     "When running a command, remove the / from the command. "
     "If you need to run another command, use the custom api docs tool. "
+    "If you need to upload a file, use the upload file tool."
+    "Make sure to search for the file in the downloads folder first to make sure you have the file the user wants, then upload it."
+    "If the file or similar file is not in the downloads folder, ask the user to upload it."
     f"These are the api docs: {apidocs}"
 )
 MAX_STEPS = 20
 
 openai.api_key = OPENAI_API_KEY
 
-# --------------------------------------------------------------------------- #
-# Tool registry                                                               #
-# --------------------------------------------------------------------------- #
 def _build_registry() -> tuple[dict[str, dict], dict[str, Any]]:
     """Collect function specs and callables from every tool."""
     specs, funcs = {}, {}
     for tool in all_tools():
-        getter = "function_specs" if hasattr(tool, "function_specs") else "function_spec"
-        for spec in getattr(tool, getter)():
+        if hasattr(tool, "function_specs"):
+            for spec in tool.function_specs():
+                specs[spec["name"]] = spec
+                funcs[spec["name"]] = tool
+        else:
+            spec = tool.function_spec()
             specs[spec["name"]] = spec
             funcs[spec["name"]] = tool
     return specs, funcs
@@ -60,9 +61,6 @@ def _call_tool(name: str, args: Dict[str, Any]) -> str:
     return tool(name, args) if len(inspect.signature(tool.__call__).parameters) == 2 else tool(args)
 
 
-# --------------------------------------------------------------------------- #
-# OpenAI helper                                                               #
-# --------------------------------------------------------------------------- #
 def _chat(messages: List[Dict[str, Any]]):
     payload: Dict[str, Any] = {
         "model": OPENAI_MODEL,
@@ -75,9 +73,6 @@ def _chat(messages: List[Dict[str, Any]]):
     return openai.chat.completions.create(**payload)
 
 
-# --------------------------------------------------------------------------- #
-# Core generator driving the loop                                             #
-# --------------------------------------------------------------------------- #
 def _agent(prompt: str) -> Generator[Tuple[str, str], None, None]:
     """
     Yields ('step', markdown) for each tool call, then ('final', reply) when done.
@@ -90,7 +85,6 @@ def _agent(prompt: str) -> Generator[Tuple[str, str], None, None]:
     for _ in range(MAX_STEPS):
         m = _chat(messages).choices[0].message
 
-        # Tool call branch
         if getattr(m, "tool_calls", None):
             tc = m.tool_calls[0]
             args = json.loads(tc.function.arguments or "{}")
@@ -109,23 +103,19 @@ def _agent(prompt: str) -> Generator[Tuple[str, str], None, None]:
             ]
             continue
 
-        # Normal assistant response
         yield ("final", m.content or "")
         return
 
     yield ("final", "Reached tool-loop limit.")
 
 
-# --------------------------------------------------------------------------- #
-# Public helpers                                                              #
-# --------------------------------------------------------------------------- #
 def run_agent_once(prompt: str, *, trace: bool = False) -> Tuple[str, List[str]]:
     """Return (assistant_reply, steps[]) – steps are markdown describing each tool call."""
     steps: List[str] = []
     for kind, text in _agent(prompt):
         if kind == "step":
             steps.append(text)
-        else:  # 'final'
+        else:
             return text, steps
     return "Reached tool-loop limit.", steps
 
@@ -140,9 +130,6 @@ def run_agent(prompt: str) -> None:
     print("\nAssistant:", run_agent_once(prompt)[0])
 
 
-# --------------------------------------------------------------------------- #
-# CLI                                                                         #
-# --------------------------------------------------------------------------- #
 def cli() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("prompt", nargs="+")

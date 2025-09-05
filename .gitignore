@@ -1,4 +1,5 @@
 .env
+server_ids.json
 downloads/
 .idea
 minecraft_agent/__pycache__

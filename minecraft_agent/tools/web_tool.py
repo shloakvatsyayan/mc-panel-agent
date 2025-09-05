@@ -37,7 +37,6 @@ class SafeWebDownloadTool:
         schema["additionalProperties"] = False
         return {"name": self.NAME, "description": self.DESC, "parameters": schema}
 
-    # Accept both call signatures
     def __call__(self, *args):
         arguments = args[-1]
         data = WebArgs(**arguments)
@@ -63,6 +62,6 @@ class SafeWebDownloadTool:
                     f.write(chunk)
 
             return f"Downloaded {local_path.name}"
-        except Exception as ex:  # pragma: no cover
+        except Exception as ex:
             log.exception("Download failed")
             return f"Download failed: {ex}"
